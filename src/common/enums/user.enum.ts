@@ -1,14 +1,14 @@
-export const enum GenderEnum {
+export enum GenderEnum {
     Male,
     Female,
 }
 
-export const enum ProviderEnum {
+export enum ProviderEnum {
     System,
     Google,
 }
 
-export const enum RoleEnum {
+export enum RoleEnum {
     User,
     Admin,
 }
