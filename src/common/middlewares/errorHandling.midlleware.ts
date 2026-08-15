@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
+import { env } from "../../config/env.service";
 
 export const GlobalErrorHandler = (
     err: any,
@@ -6,8 +7,7 @@ export const GlobalErrorHandler = (
     res: Response,
     next: NextFunction,
 ) => {
-    // const isDev = env.nodeEnv === "dev";
-    const isDev = true;
+    const isDev = env.nodeEnv === "dev";
     const statusCode = err.status ?? err.cause?.status ?? 500;
     const message = err.message ?? "something went wrong";
 
@@ -15,6 +15,6 @@ export const GlobalErrorHandler = (
         success: false,
         message,
         ...(isDev && { stack: err.stack }),
-        ...(isDev && { extra: err.cause?.extra }),
+        ...(isDev && { extra: err.cause }),
     });
 };
