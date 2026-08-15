@@ -3,7 +3,8 @@ import { IUser, GenderEnum, ProviderEnum, RoleEnum } from "../../common";
 
 const userSchema = new mongoose.Schema<IUser>(
     {
-        firstName: { type: String },
+        username: { type: String, required: true, unique: true },
+        firstName: { type: String, required: true },
         lastName: { type: String },
         email: {
             type: String,
@@ -13,7 +14,7 @@ const userSchema = new mongoose.Schema<IUser>(
             trim: true,
             match: [/^\S+@\S+\.\S+$/, "Please provide a valid email"],
         },
-        phone: { type: String },
+        phone: { type: String, required: true },
         password: {
             type: String,
             required: function (): boolean {
@@ -38,11 +39,15 @@ const userSchema = new mongoose.Schema<IUser>(
             default: RoleEnum.User,
         },
     },
-    { timestamps: true },
+    {
+        timestamps: true,
+        toJSON: { virtuals: true },
+        toObject: { virtuals: true },
+    },
 );
 
 userSchema
-    .virtual("username")
+    .virtual("fullName")
     .set(function (value) {
         const [firstName, lastName] = value.split(" ");
         this.firstName = firstName;
