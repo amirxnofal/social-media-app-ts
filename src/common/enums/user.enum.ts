@@ -1,14 +1,14 @@
 export enum GenderEnum {
-    Male,
-    Female,
+    Male = "male",
+    Female = "female",
 }
 
 export enum ProviderEnum {
-    System,
-    Google,
+    System = "system",
+    Google = "google",
 }
 
 export enum RoleEnum {
-    User,
-    Admin,
+    User = "user",
+    Admin = "admin",
 }
