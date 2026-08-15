@@ -6,9 +6,11 @@ import helmet from "helmet";
 // Internal Modules
 import { env } from "./config/env.service";
 import { databaseConnection } from "./database/connect";
-import { limiter } from "./common/middlewares/rate-limit.middleware";
+import { RedisConnection } from "./database/redis/redis";
+import { GlobalErrorHandler, limiter } from "./common";
+
+// Imported Routes
 import authRoutes from "./modules/auth/auth.route";
-import { GlobalErrorHandler } from "./common/middlewares/errorHandling.midlleware";
 
 export const bootstrap = async (): Promise<void> => {
     const app = express();
@@ -17,6 +19,7 @@ export const bootstrap = async (): Promise<void> => {
 
     // Database Connection
     await databaseConnection();
+    await RedisConnection();
 
     // Health Check Route
     app.get("/check-health", (_req: Request, res: Response) => {
@@ -25,11 +28,11 @@ export const bootstrap = async (): Promise<void> => {
             message: "Server is healthy",
         });
     });
-    
+
     // Routes
     app.use("/auth", authRoutes);
 
-    app.use(GlobalErrorHandler)
+    app.use(GlobalErrorHandler);
     startServer(app);
 };
 
