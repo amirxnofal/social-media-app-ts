@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema<IUser>(
             trim: true,
             match: [/^\S+@\S+\.\S+$/, "Please provide a valid email"],
         },
-        phone: { type: String, required: true },
+        phone: { type: String, required: true, unique: true },
         password: {
             type: String,
             required: function (): boolean {
@@ -28,7 +28,8 @@ const userSchema = new mongoose.Schema<IUser>(
         },
         gender: {
             type: String,
-            default: GenderEnum.Male,
+            enum: Object.values(GenderEnum),
+            required: true,
         },
         provider: {
             type: String,
