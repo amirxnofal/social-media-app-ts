@@ -6,6 +6,7 @@ dotenv.config({ path: path.resolve(`./.env.${process.env.NODE_ENV}`) });
 const port = process.env.PORT;
 const nodeEnv = process.env.NODE_ENV;
 const mongodbUri = process.env.MONGODB_URI;
+const redisUrl = process.env.REDIS_URL as string;
 const saltRound = process.env.SALT_ROUND;
 const googleAppEmail = process.env.GOOGLE_APP_EMAIL;
 const googleAppPassword = process.env.GOOGLE_APP_PASSWORD;
@@ -19,4 +20,5 @@ export const env = {
     googleAppPassword,
     emailSenderName,
     nodeEnv,
+    redisUrl,
 };
