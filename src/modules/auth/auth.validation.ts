@@ -43,7 +43,7 @@ export const loginSchema = z.object({
     password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
-export type loginDto = z.infer<typeof loginSchema>;
+export type LoginDto = z.infer<typeof loginSchema>;
 
 // Verify email
 export const verifyEmailSchema = z.object({
@@ -51,11 +51,34 @@ export const verifyEmailSchema = z.object({
     otp: z.string().length(6).trim(),
 });
 
-export type verifyEmailDto = z.infer<typeof verifyEmailSchema>;
+export type VerifyEmailDto = z.infer<typeof verifyEmailSchema>;
 
 // Resend OTP
 export const resendOtpSchema = z.object({
     email: z.string().trim().toLowerCase().email("Invalid email format"),
 });
 
-export type resendOtpDto = z.infer<typeof resendOtpSchema>;
+export type ResendOtpDto = z.infer<typeof resendOtpSchema>;
+
+// Forget password
+export const forgetPasswordSchema = z.object({
+    email: z.string().trim().toLowerCase().email("Invalid email format"),
+});
+
+export type ForgetPasswordDto = z.infer<typeof forgetPasswordSchema>;
+
+
+// Reset Password
+export const resetPasswordSchema = z
+    .object({
+        email: z.string().trim().toLowerCase().email("Invalid email format"),
+        otp: z.string().length(6, "OTP must be 6 digits"),
+        newPassword: z.string().min(8, "Password must be at least 8 characters"),
+        confirmNewPassword: z.string(),
+    })
+    .refine((data) => data.newPassword === data.confirmNewPassword, {
+        message: "Passwords do not match",
+        path: ["confirmNewPassword"],
+    });
+
+export type ResetPasswordDto = z.infer<typeof resetPasswordSchema>;

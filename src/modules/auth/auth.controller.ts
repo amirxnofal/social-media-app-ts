@@ -3,10 +3,10 @@ import authService from "./auth.service";
 import { SuccessResponse } from "../../common";
 import * as error from "../../common";
 import {
-    loginDto,
+    LoginDto,
     RegisterDto,
-    resendOtpDto,
-    verifyEmailDto,
+    ResendOtpDto,
+    VerifyEmailDto,
 } from "./auth.validation";
 
 class AuthController {
@@ -27,7 +27,7 @@ class AuthController {
 
     async login(req: Request, res: Response, next: NextFunction) {
         try {
-            const data: loginDto = req.body;
+            const data: LoginDto = req.body;
 
             const result = await authService.login(data, req.get("host"));
             SuccessResponse({
@@ -43,7 +43,7 @@ class AuthController {
 
     async verifyEmail(req: Request, res: Response, next: NextFunction) {
         try {
-            const data: verifyEmailDto = req.body;
+            const data: VerifyEmailDto = req.body;
 
             await authService.verifyEmail(data);
             SuccessResponse({
@@ -76,7 +76,7 @@ class AuthController {
 
     async resendOtp(req: Request, res: Response, next: NextFunction) {
         try {
-            const data: resendOtpDto = req.body;
+            const data: ResendOtpDto = req.body;
             await authService.resendOtp(data);
 
             SuccessResponse({

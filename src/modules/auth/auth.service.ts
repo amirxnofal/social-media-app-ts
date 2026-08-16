@@ -3,22 +3,17 @@ import {
     compareText,
     ConflictException,
     GenderEnum,
-    generateOtp,
+    generateToken,
     hashText,
-    IUser,
-    otpEmailTemplate,
     ProviderEnum,
+    REDIS_KEYS,
     RoleEnum,
-    sendEmail,
     TokenPayload,
     UnauthorizedException,
 } from "../../common";
-import {
-    generateAccessToken,
-    generateToken,
-} from "../../common/utils/token.utils";
 import userModel from "../../database/models/user.model";
 import * as RedisClient from "../../database/redis/redis.service";
+import { generateAndSendOtp } from "./auth.helper";
 import * as type from "./auth.validation";
 
 class AuthService {
@@ -67,25 +62,12 @@ class AuthService {
             role: RoleEnum.User,
         });
 
-        const otp = generateOtp(6);
-        const hashedOtp = await hashText({ plainText: otp });
-
-        await RedisClient.set({
-            key: `otp:${user._id}`,
-            value: hashedOtp,
-            ttl: 5 * 60,
-        });
-
-        await sendEmail({
-            to: email,
-            subject: "OTP Verification",
-            html: otpEmailTemplate(otp),
-        });
+        await generateAndSendOtp(user, "verify-email", "OTP Verification");
 
         return user;
     }
 
-    async login(data: type.loginDto, host?: string) {
+    async login(data: type.LoginDto, host?: string) {
         const { identifier, password } = data;
         const user = await userModel
             .findOne({
@@ -114,7 +96,7 @@ class AuthService {
         return tokens;
     }
 
-    async verifyEmail(data: type.verifyEmailDto) {
+    async verifyEmail(data: type.VerifyEmailDto) {
         const { email, otp } = data;
         const user = await userModel.findOne({ email });
         if (!user) throw new BadRequestException("Email not found");
@@ -122,7 +104,9 @@ class AuthService {
         if (user.isVerified)
             throw new UnauthorizedException("Email already verified");
 
-        const hashedOtp = await RedisClient.get(`otp:${user._id}`);
+        const hashedOtp = await RedisClient.get(
+            REDIS_KEYS.verifyEmail(user._id.toString()),
+        );
 
         if (!hashedOtp) throw new BadRequestException("Invalid or expired otp");
 
@@ -136,31 +120,62 @@ class AuthService {
         user.isVerified = true;
         await user.save();
 
-        await RedisClient.del(`otp:${user._id}`);
+        await RedisClient.del(REDIS_KEYS.verifyEmail(user._id.toString()));
 
         return 1;
     }
 
-    async resendOtp(data: type.resendOtpDto) {
+    async resendOtp(data: type.ResendOtpDto) {
         const { email } = data;
 
         const user = await userModel.findOne({ email });
         if (!user) throw new BadRequestException("Unable to process request");
 
-        const otp = generateOtp(6);
-        const hashedOtp = await hashText({ plainText: otp });
+        if (user.isVerified) {
+            throw new BadRequestException("Email is already verified");
+        }
 
-        await RedisClient.set({
-            key: `otp:${user._id}`,
-            value: hashedOtp,
-            ttl: 60,
-        });
+        await generateAndSendOtp(user, "verify-email", "OTP Verification");
 
-        await sendEmail({
-            to: email,
-            subject: "OTP Verification",
-            html: otpEmailTemplate(otp),
+        return 1;
+    }
+
+    async forgetPassword(data: type.ForgetPasswordDto) {
+        const { email } = data;
+
+        const user = await userModel.findOne({ email });
+        if (!user) throw new BadRequestException("Invalid request");
+
+        if (!user.isVerified) {
+            throw new BadRequestException("Please verify your email first");
+        }
+
+        await generateAndSendOtp(user, "reset-password", "Reset Password");
+
+        return 1;
+    }
+
+    async resetPassword(data: type.ResetPasswordDto) {
+        const { email, otp, newPassword } = data;
+
+        const user = await userModel.findOne({ email });
+        if (!user) throw new BadRequestException("Invalid request");
+
+        const hashedOtp = await RedisClient.get(
+            REDIS_KEYS.resetPassword(user._id.toString()),
+        );
+        if (!hashedOtp) throw new BadRequestException("Invalid or expired otp");
+
+        const isMatch = await compareText({
+            plainText: otp,
+            cypherText: hashedOtp,
         });
+        if (!isMatch) throw new UnauthorizedException("Invalid or expired otp");
+
+        user.password = await hashText({ plainText: newPassword });
+        await user.save();
+
+        await RedisClient.del(REDIS_KEYS.resetPassword(user._id.toString()));
 
         return 1;
     }

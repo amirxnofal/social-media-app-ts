@@ -31,6 +31,7 @@ router.post("/refresh-token", refreshAuth, authController.refreshToken);
 
 router.post(
     "/resend-otp",
+    limiter(10, 3, "Too many attempts, please try again later"),
     Validation(v.resendOtpSchema),
     authController.resendOtp,
 );
