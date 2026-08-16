@@ -4,7 +4,7 @@ export interface SuccessResponseParams {
     res: Response;
     statusCode?: number;
     message?: string;
-    data?: any;
-    token?: string;
-    extra?: any;
+    data?: unknown;
+    token?: { accessToken: string; refreshToken: string };
+    extra?: unknown;
 }
