@@ -3,7 +3,7 @@ import { IUser, GenderEnum, ProviderEnum, RoleEnum } from "../../common";
 
 const userSchema = new mongoose.Schema<IUser>(
     {
-        username: { type: String, required: true, unique: true },
+        username: { type: String, required: true, unique: true, trim: true },
         firstName: { type: String, required: true },
         lastName: { type: String },
         email: {
@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema<IUser>(
             },
             select: false,
         },
-        confirmEmail: {
+        isVerified: {
             type: Boolean,
             default: false,
         },
