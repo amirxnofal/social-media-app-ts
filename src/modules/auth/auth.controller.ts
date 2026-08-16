@@ -90,6 +90,7 @@ class AuthController {
             next(error);
         }
     }
+
     async forgetPassword(req: Request, res: Response, next: NextFunction) {
         try {
             const data: ForgetPasswordDto = req.body;
@@ -104,6 +105,7 @@ class AuthController {
             next(error);
         }
     }
+    
     async resetPassword(req: Request, res: Response, next: NextFunction) {
         try {
             const data: ResetPasswordDto = req.body;
