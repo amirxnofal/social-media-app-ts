@@ -36,4 +36,18 @@ router.post(
     authController.resendOtp,
 );
 
+router.post(
+    "/forgot-password",
+    limiter(10, 3, "Too many attempts, please try again later"),
+    Validation(v.forgetPasswordSchema),
+    authController.forgetPassword,
+);
+
+router.post(
+    "/reset-password",
+    limiter(10, 3, "Too many attempts, please try again later"),
+    Validation(v.resetPasswordSchema),
+    authController.resetPassword,
+);
+
 export default router;

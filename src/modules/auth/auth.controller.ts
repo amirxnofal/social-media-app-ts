@@ -3,9 +3,11 @@ import authService from "./auth.service";
 import { SuccessResponse } from "../../common";
 import * as error from "../../common";
 import {
+    ForgetPasswordDto,
     LoginDto,
     RegisterDto,
     ResendOtpDto,
+    ResetPasswordDto,
     VerifyEmailDto,
 } from "./auth.validation";
 
@@ -88,7 +90,34 @@ class AuthController {
             next(error);
         }
     }
+    async forgetPassword(req: Request, res: Response, next: NextFunction) {
+        try {
+            const data: ForgetPasswordDto = req.body;
+            await authService.forgetPassword(data);
 
+            SuccessResponse({
+                res,
+                statusCode: 200,
+                message: "OTP sent",
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+    async resetPassword(req: Request, res: Response, next: NextFunction) {
+        try {
+            const data: ResetPasswordDto = req.body;
+            await authService.resetPassword(data);
+
+            SuccessResponse({
+                res,
+                statusCode: 200,
+                message: "Password reseted",
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
 export default new AuthController();
