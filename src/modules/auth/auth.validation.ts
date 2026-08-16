@@ -52,3 +52,10 @@ export const verifyEmailSchema = z.object({
 });
 
 export type verifyEmailDto = z.infer<typeof verifyEmailSchema>;
+
+// Resend OTP
+export const resendOtpSchema = z.object({
+    email: z.string().trim().toLowerCase().email("Invalid email format"),
+});
+
+export type resendOtpDto = z.infer<typeof resendOtpSchema>;

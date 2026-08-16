@@ -145,6 +145,30 @@ class AuthService {
 
         return 1;
     }
+
+    async resendOtp(data: type.resendOtpDto) {
+        const { email } = data;
+
+        const user = await userModel.findOne({ email });
+        if (!user) throw new BadRequestException("Unable to process request");
+
+        const otp = generateOtp(6);
+        const hashedOtp = await hashText({ plainText: otp });
+
+        await RedisClient.set({
+            key: `otp:${user._id}`,
+            value: hashedOtp,
+            ttl: 60,
+        });
+
+        await sendEmail({
+            to: email,
+            subject: "OTP Verification",
+            html: otpEmailTemplate(otp),
+        });
+
+        return 1;
+    }
 }
 
 export default new AuthService();

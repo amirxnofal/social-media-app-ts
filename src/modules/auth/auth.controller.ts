@@ -2,7 +2,12 @@ import { type NextFunction, type Request, type Response } from "express";
 import authService from "./auth.service";
 import { SuccessResponse } from "../../common";
 import * as error from "../../common";
-import { loginDto, RegisterDto, verifyEmailDto } from "./auth.validation";
+import {
+    loginDto,
+    RegisterDto,
+    resendOtpDto,
+    verifyEmailDto,
+} from "./auth.validation";
 
 class AuthController {
     async register(req: Request, res: Response, next: NextFunction) {
@@ -40,7 +45,7 @@ class AuthController {
         try {
             const data: verifyEmailDto = req.body;
 
-            const result = await authService.verifyEmail(data);
+            await authService.verifyEmail(data);
             SuccessResponse({
                 res,
                 statusCode: 200,
@@ -69,8 +74,24 @@ class AuthController {
         }
     }
 
+    async resendOtp(req: Request, res: Response, next: NextFunction) {
+        try {
+            const data: resendOtpDto = req.body;
+            await authService.resendOtp(data);
+
+            SuccessResponse({
+                res,
+                statusCode: 200,
+                message: "OTP sent",
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
     async returnAll(req: Request, res: Response) {
         const result = await authService.returnAll();
+
         res.status(200).json({
             success: true,
             message: "Done",

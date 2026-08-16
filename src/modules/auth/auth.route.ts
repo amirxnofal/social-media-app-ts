@@ -29,6 +29,12 @@ router.post(
 
 router.post("/refresh-token", refreshAuth, authController.refreshToken);
 
+router.post(
+    "/resend-otp",
+    Validation(v.resendOtpSchema),
+    authController.resendOtp,
+);
+
 router.get("/rr", authController.returnAll);
 
 export default router;
