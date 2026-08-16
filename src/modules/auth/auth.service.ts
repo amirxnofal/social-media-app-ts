@@ -85,11 +85,6 @@ class AuthService {
         return user;
     }
 
-    async returnAll() {
-        const users = await userModel.find();
-        return users;
-    }
-
     async login(data: type.loginDto, host?: string) {
         const { identifier, password } = data;
         const user = await userModel

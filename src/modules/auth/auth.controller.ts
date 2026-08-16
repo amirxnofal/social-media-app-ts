@@ -89,15 +89,6 @@ class AuthController {
         }
     }
 
-    async returnAll(req: Request, res: Response) {
-        const result = await authService.returnAll();
-
-        res.status(200).json({
-            success: true,
-            message: "Done",
-            data: result,
-        });
-    }
 }
 
 export default new AuthController();

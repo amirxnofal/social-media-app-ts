@@ -35,6 +35,4 @@ router.post(
     authController.resendOtp,
 );
 
-router.get("/rr", authController.returnAll);
-
 export default router;
