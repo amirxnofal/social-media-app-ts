@@ -5,6 +5,6 @@ export interface SuccessResponseParams {
     statusCode?: number;
     message?: string;
     data?: unknown;
-    token?: { accessToken: string; refreshToken: string };
+    token?: { accessToken: string; refreshToken?: string };
     extra?: unknown;
 }
