@@ -1,6 +1,7 @@
+import { Document } from "mongoose";
 import { GenderEnum, ProviderEnum, RoleEnum } from "../../common";
 
-export interface IUser {
+export interface IUser extends Document {
     username: string;
     firstName: string;
     lastName?: string | undefined;
