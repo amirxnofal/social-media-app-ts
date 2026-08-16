@@ -38,6 +38,16 @@ export const del = async (key: string) => {
     return await client.del(key);
 };
 
+export type TokenType = "access" | "refresh";
+
+export const isTokenBlacklisted = async (
+    jti: string,
+    type: TokenType,
+): Promise<boolean> => {
+    const result = await exists(`revoked:${type}:${jti}`);
+    return result === 1;
+};
+
 export const createRevokeToken = async (
     decoded: DecodedToken,
     type: "access" | "refresh",
