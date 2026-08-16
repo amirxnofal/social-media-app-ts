@@ -1,9 +1,8 @@
 import { Router } from "express";
 
 import authController from "./auth.controller";
-import { limiter } from "../../common/middlewares/rate-limit.middleware";
-import { Validation } from "../../common/middlewares/validation.middleware";
 import * as v from "./auth.validation";
+import { limiter, refreshAuth, Validation } from "../../common";
 
 const router = Router();
 
@@ -27,6 +26,8 @@ router.post(
     limiter(10, 3, "Too many attempts, please try again later"),
     authController.verifyEmail,
 );
+
+router.post("/refresh-token", refreshAuth, authController.refreshToken);
 
 router.get("/rr", authController.returnAll);
 

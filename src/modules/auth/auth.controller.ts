@@ -1,6 +1,7 @@
 import { type NextFunction, type Request, type Response } from "express";
 import authService from "./auth.service";
 import { SuccessResponse } from "../../common";
+import * as error from "../../common";
 import { loginDto, RegisterDto, verifyEmailDto } from "./auth.validation";
 
 class AuthController {
@@ -44,6 +45,24 @@ class AuthController {
                 res,
                 statusCode: 200,
                 message: "Email verified",
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async refreshToken(req: Request, res: Response, next: NextFunction) {
+        try {
+            if (!req.newAccessToken) {
+                return next(
+                    new error.UnauthorizedException("Failed to refresh token"),
+                );
+            }
+            SuccessResponse({
+                res,
+                statusCode: 200,
+                message: "Token refreshed",
+                token: { accessToken: req.newAccessToken },
             });
         } catch (error) {
             next(error);

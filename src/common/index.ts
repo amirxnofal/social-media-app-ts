@@ -24,3 +24,5 @@ export * from "./utils/otp.utils";
 // Middlewares
 export * from "./middlewares/errorHandling.midlleware";
 export * from "./middlewares/rate-limit.middleware";
+export * from "./middlewares/refresh.middleware";
+export * from "./middlewares/validation.middleware";
