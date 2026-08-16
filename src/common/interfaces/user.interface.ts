@@ -3,13 +3,13 @@ import { GenderEnum, ProviderEnum, RoleEnum } from "../../common";
 export interface IUser {
     username: string;
     firstName: string;
-    lastName: string;
+    lastName?: string | undefined;
     email: string;
     phone: string;
     password: string;
-    confirmEmail: boolean;
+    isVerified: boolean;
     fullName?: string;
     gender?: GenderEnum;
     provider?: ProviderEnum;
-    role?: RoleEnum;
+    role: RoleEnum;
 }
