@@ -3,7 +3,7 @@ import { ZodSchema } from "zod";
 import { BadRequestException } from "../responses/error.response";
 
 export const Validation = (schema: ZodSchema) => {
-    return (req: Request, res: Response, next: NextFunction) => {
+    return (req: Request, _res: Response, next: NextFunction) => {
         const result = schema.safeParse(req.body);
 
         if (!result.success) {

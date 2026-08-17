@@ -8,7 +8,7 @@ export const hashText = async ({
     plainText: string;
     salt?: string;
 }): Promise<string> => {
-    return await bcrypt.hash(plainText, Number(env.saltRound));
+    return await bcrypt.hash(plainText, Number(salt));
 };
 
 export const compareText = async ({

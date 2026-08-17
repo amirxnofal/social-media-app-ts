@@ -18,8 +18,12 @@ const saltRound = getEnvVar("SALT_ROUND");
 const googleAppEmail = getEnvVar("GOOGLE_APP_EMAIL");
 const googleAppPassword = getEnvVar("GOOGLE_APP_PASSWORD");
 const emailSenderName = getEnvVar("EMAIL_SENDER_NAME");
-const jwtAccessSecret = getEnvVar("ACCESS_SECRET_KEY");
-const jwtRefreshSecret = getEnvVar("REFRESH_SECRET_KEY");
+
+const jwtUserAccessSecret = getEnvVar("JWT_USER_ACCESS_SECRET");
+const jwtUserRefreshSecret = getEnvVar("JWT_USER_REFRESH_SECRET");
+const jwtAdminAccessSecret = getEnvVar("JWT_ADMIN_ACCESS_SECRET");
+const jwtAdminRefreshSecret = getEnvVar("JWT_ADMIN_REFRESH_SECRET");
+
 const nodeEnv = process.env.NODE_ENV || "dev";
 const jwtAccessExpiry = process.env.ACCESS_EXPIRY || "15m";
 const jwtRefreshExpiry = process.env.REFRESH_EXPIRY || "7d";
@@ -34,9 +38,11 @@ export const env = {
     emailSenderName,
     nodeEnv,
     redisUrl,
-    jwtAccessSecret,
+    jwtUserAccessSecret,
+    jwtUserRefreshSecret,
+    jwtAdminAccessSecret,
+    jwtAdminRefreshSecret,
     jwtAccessExpiry,
-    jwtRefreshSecret,
     jwtRefreshExpiry,
     appName,
 };

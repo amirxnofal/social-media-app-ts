@@ -1,4 +1,4 @@
-export interface IAError {
+export interface IAppError {
     status: number;
     message: string;
     cause?: unknown;

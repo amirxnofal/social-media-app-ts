@@ -7,10 +7,10 @@ import helmet from "helmet";
 import { env } from "./config/env.service";
 import { databaseConnection } from "./database/connect";
 import { RedisConnection } from "./database/redis/redis";
-import { GlobalErrorHandler, limiter, SuccessResponse } from "./common";
+import { GlobalErrorHandler, limiter, SuccessResponse, verifyEmailConnection } from "./common";
 
 // Imported Routes
-import authRoutes from "./modules/auth/auth.route";
+// import authRoutes from "./modules/auth/auth.route";
 
 export const bootstrap = async (): Promise<void> => {
     const app = express();
@@ -20,6 +20,7 @@ export const bootstrap = async (): Promise<void> => {
     // Database Connection
     await databaseConnection();
     await RedisConnection();
+    await verifyEmailConnection()
 
     // Health Check Route
     app.get("/check-health", (_req: Request, res: Response) => {
@@ -31,7 +32,7 @@ export const bootstrap = async (): Promise<void> => {
     });
 
     // Routes
-    app.use("/auth", authRoutes);
+    // app.use("/auth", authRoutes);
 
     // Dummy urls
     app.use("{*dummy}", (_req, res) => {

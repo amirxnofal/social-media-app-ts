@@ -1,6 +1,6 @@
-import { IAError } from "../index";
+import { IAppError } from "../index";
 
-export class ApplicationException extends Error implements IAError {
+export class ApplicationException extends Error implements IAppError {
     constructor(
         message: string,
         public status: number,
@@ -49,5 +49,17 @@ export class TooManyRequestsException extends ApplicationException {
 export class InternalServerErrorException extends ApplicationException {
     constructor(message: string = "Internal server error", cause?: unknown) {
         super(message, 500, cause);
+    }
+}
+
+export class ValidationErrorException extends ApplicationException {
+    constructor(message: string = "Validation error", cause?: unknown) {
+        super(message, 406, cause);
+    }
+}
+
+export class ExpiredOrInvalidTokenException extends ApplicationException {
+    constructor(message: string = "Invalid or expired token", cause?: unknown) {
+        super(message, 498, cause);
     }
 }

@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import * as error from "../responses/error.response";
 import { DecodedToken } from "../interfaces/token.interface";
-import { verifyAccessToken } from "../utils/token.utils";
 import { isTokenBlacklisted } from "../../database/redis/redis.service";
+import tokenService from "../utils/token.utils";
 
 export const authenticate = async (
     req: Request,
@@ -23,10 +23,10 @@ export const authenticate = async (
 
     let decoded: DecodedToken;
     try {
-        decoded = verifyAccessToken(token, req.get("host"));
+        decoded = tokenService.verifyAccessToken(token, req.get("host"));
     } catch (err) {
         return next(
-            new error.UnauthorizedException("Invalid or expired token"),
+            new error.ExpiredOrInvalidTokenException()
         );
     }
 

@@ -1,5 +1,5 @@
 import { JwtPayload } from "jsonwebtoken";
-import { RoleEnum } from "../enums/user.enum";
+import { RoleEnum } from "../index";
 
 export interface TokenPayload {
     userId: string;

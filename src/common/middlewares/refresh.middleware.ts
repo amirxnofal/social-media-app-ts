@@ -1,8 +1,8 @@
-import type { NextFunction, Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import * as error from "../responses/error.response";
-import { generateAccessToken, verifyRefreshToken } from "../utils/token.utils";
-import { isTokenBlacklisted } from "../../database/redis/redis.service";
 import { DecodedToken } from "../interfaces/token.interface";
+import { isTokenBlacklisted } from "../../database/redis/redis.service";
+import tokenService from "../utils/token.utils";
 
 export const refreshAuth = async (
     req: Request,
@@ -23,18 +23,16 @@ export const refreshAuth = async (
 
     let decoded: DecodedToken;
     try {
-        decoded = verifyRefreshToken(token, req.get("host"));
+        decoded = tokenService.verifyRefreshToken(token, req.get("host"));
     } catch (err) {
-        return next(
-            new error.UnauthorizedException("Invalid or expired token"),
-        );
+        return next(new error.ExpiredOrInvalidTokenException());
     }
 
     if (await isTokenBlacklisted(decoded.jti, "refresh")) {
         return next(new error.UnauthorizedException("Token revoked"));
     }
 
-    req.newAccessToken = generateAccessToken({
+    req.newAccessToken = tokenService.generateAccessToken({
         userId: decoded.userId,
         role: decoded.role,
         host: typeof decoded.aud === "string" ? decoded.aud : undefined,
