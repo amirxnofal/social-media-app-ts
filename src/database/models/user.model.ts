@@ -1,5 +1,11 @@
 import mongoose from "mongoose";
-import { IUser, GenderEnum, ProviderEnum, RoleEnum } from "../../common";
+import {
+    IUser,
+    GenderEnum,
+    ProviderEnum,
+    RoleEnum,
+    UserStatusEnum,
+} from "../../common";
 
 const userSchema = new mongoose.Schema<IUser>({
     username: { type: String, required: true, unique: true, trim: true },
@@ -27,9 +33,9 @@ const userSchema = new mongoose.Schema<IUser>({
         type: Boolean,
         default: false,
     },
-    isActive: {
-        type: Boolean,
-        default: false,
+    status: {
+        type: String,
+        default: UserStatusEnum.Inactive,
     },
 
     gender: {
@@ -51,6 +57,7 @@ const userSchema = new mongoose.Schema<IUser>({
     },
     coverPic: {
         type: [String],
+        default: undefined,
     },
     bio: {
         type: String,

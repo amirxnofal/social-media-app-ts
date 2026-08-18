@@ -12,3 +12,10 @@ export enum RoleEnum {
     User = "user",
     Admin = "admin",
 }
+
+export enum UserStatusEnum {
+    Active = "active",
+    Inactive = "inactive",
+    Suspended = "suspended",
+    Banned = "banned",
+}

@@ -1,5 +1,10 @@
 import { Document } from "mongoose";
-import { GenderEnum, ProviderEnum, RoleEnum } from "../../common";
+import {
+    GenderEnum,
+    ProviderEnum,
+    RoleEnum,
+    UserStatusEnum,
+} from "../../common";
 
 export interface IUser extends Document {
     username: string;
@@ -12,13 +17,13 @@ export interface IUser extends Document {
     password?: string;
 
     isVerified: boolean;
-    isActive: boolean;
+    status: UserStatusEnum;
 
     gender: GenderEnum;
     provider: ProviderEnum;
     role: RoleEnum;
 
     profilePic?: string;
-    coverPic?: [string];
+    coverPic?: string[];
     bio: string;
 }
