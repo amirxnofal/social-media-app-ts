@@ -1,10 +1,7 @@
-import { client } from "./redis.js";
+import { RedisKeys } from "../../common";
+import { client } from "./redis";
+import { DecodedToken } from "../../common/interfaces/token.interface";
 
-interface DecodedToken {
-    jti: string;
-    exp: number;
-    [key: string]: unknown;
-}
 
 export const get = async (key: string) => {
     return await client.get(key);
@@ -50,7 +47,7 @@ export const isTokenBlacklisted = async (
 
 export const createRevokeToken = async (
     decoded: DecodedToken,
-    type: "access" | "refresh",
+    type: TokenType,
 ) => {
     const now = Math.floor(Date.now() / 1000);
     const tokenTtl = decoded.exp - now;
@@ -58,7 +55,7 @@ export const createRevokeToken = async (
     if (!decoded?.jti || tokenTtl <= 0) return null;
 
     await set({
-        key: `revoked:${type}:${decoded.jti}`,
+        key: RedisKeys.revokedToken(type, decoded.jti),
         value: "1",
         ttl: tokenTtl,
     });
