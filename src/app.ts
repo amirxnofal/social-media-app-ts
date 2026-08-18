@@ -10,7 +10,7 @@ import { RedisConnection } from "./database/redis/redis";
 import { GlobalErrorHandler, limiter, SuccessResponse, verifyEmailConnection } from "./common";
 
 // Imported Routes
-// import authRoutes from "./modules/auth/auth.route";
+import authRoutes from "./modules/auth/auth.route";
 
 export const bootstrap = async (): Promise<void> => {
     const app = express();
@@ -32,7 +32,7 @@ export const bootstrap = async (): Promise<void> => {
     });
 
     // Routes
-    // app.use("/auth", authRoutes);
+    app.use("/auth", authRoutes);
 
     // Dummy urls
     app.use("{*dummy}", (_req, res) => {
