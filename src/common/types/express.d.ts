@@ -6,6 +6,8 @@ declare global {
             user?: {
                 userId: string;
                 role: RoleEnum;
+                jti: string;
+                exp: number;
             };
             newAccessToken?: string;
         }

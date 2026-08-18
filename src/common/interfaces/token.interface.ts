@@ -11,4 +11,5 @@ export interface DecodedToken extends JwtPayload {
     userId: string;
     role: RoleEnum;
     jti: string;
+    exp: number;
 }

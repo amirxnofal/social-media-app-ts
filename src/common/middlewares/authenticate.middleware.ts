@@ -25,15 +25,17 @@ export const authenticate = async (
     try {
         decoded = tokenService.verifyAccessToken(token, req.get("host"));
     } catch (err) {
-        return next(
-            new error.ExpiredOrInvalidTokenException()
-        );
+        return next(new error.ExpiredOrInvalidTokenException());
     }
 
     if (await isTokenBlacklisted(decoded.jti, "access")) {
         return next(new error.UnauthorizedException("Token revoked"));
     }
-
-    req.user = { userId: decoded.userId, role: decoded.role };
+    req.user = {
+        userId: decoded.userId,
+        role: decoded.role,
+        jti: decoded.jti,
+        exp: decoded.exp,
+    };
     next();
 };

@@ -2,7 +2,7 @@ import jwt, { SignOptions } from "jsonwebtoken";
 import { randomUUID } from "crypto";
 
 import { env } from "../../config/env.service";
-import { DecodedToken, RoleEnum, TokenPayload } from "../index";
+import { DecodedToken, RoleEnum, TokenPayload, UnauthorizedException } from "../index";
 
 interface UnverifiedPayload {
     role?: RoleEnum;
@@ -43,7 +43,10 @@ class TokenService {
 
     generateAccessToken(payload: TokenPayload): string {
         const secret = this.getAccessSecret(payload.role);
-        const options = this.buildSignOptions(env.jwtAccessExpiry, payload.host);
+        const options = this.buildSignOptions(
+            env.jwtAccessExpiry,
+            payload.host,
+        );
 
         return jwt.sign(
             { userId: payload.userId, role: payload.role },
@@ -54,7 +57,10 @@ class TokenService {
 
     generateRefreshToken(payload: TokenPayload): string {
         const secret = this.getRefreshSecret(payload.role);
-        const options = this.buildSignOptions(env.jwtRefreshExpiry, payload.host);
+        const options = this.buildSignOptions(
+            env.jwtRefreshExpiry,
+            payload.host,
+        );
 
         return jwt.sign(
             { userId: payload.userId, role: payload.role },
@@ -77,7 +83,7 @@ class TokenService {
         const unverifiedPayload = jwt.decode(token) as UnverifiedPayload | null;
 
         if (!unverifiedPayload?.role) {
-            throw new Error("Invalid token structure");
+            throw new UnauthorizedException("Invalid token structure");
         }
 
         const secret = getSecret(unverifiedPayload.role);
