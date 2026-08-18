@@ -36,7 +36,7 @@ export const sendEmail = async (
             subject,
             html,
         });
-        console.log("Email sent:", info.messageId);
+        console.log("Email sent:", info.accepted);
     } catch (error) {
         if (retries > 0) {
             console.warn(`Email send failed, retrying... (${retries} left)`);
