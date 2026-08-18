@@ -13,7 +13,7 @@ export * from "./responses/success.response";
 
 // Email
 export * from "./email/email.service";
-export * from "./email/template/template";
+export * from "./email/template/otp.template";
 
 // Security
 export * from "./security/security";

@@ -1,184 +1,213 @@
-// import {
-//     BadRequestException,
-//     compareText,
-//     ConflictException,
-//     GenderEnum,
-//     generateToken,
-//     hashText,
-//     ProviderEnum,
-//     REDIS_KEYS,
-//     RoleEnum,
-//     TokenPayload,
-//     UnauthorizedException,
-// } from "../../common";
-// import userModel from "../../database/models/user.model";
-// import * as RedisClient from "../../database/redis/redis.service";
-// import { generateAndSendOtp } from "./auth.helper";
-// import * as type from "./auth.validation";
+import * as RedisClient from "../../database/redis/redis.service";
+import {
+    BadRequestException,
+    compareText,
+    ConflictException,
+    DecodedToken,
+    GenderEnum,
+    hashText,
+    IUser,
+    ProviderEnum,
+    RoleEnum,
+    TokenPayload,
+    UnauthorizedException,
+    UserStatusEnum,
+} from "../../common";
+import userModel from "../../database/models/user.model";
+import { DatabaseRepository } from "../../database/repository/database.repository";
+import { generateAndSendOtp } from "./auth.helper";
+import * as type from "./auth.validation";
+import tokenService from "../../common/utils/token.utils";
+import { RedisKeys } from "../../common";
+class AuthService {
+    private userRepository: DatabaseRepository<IUser>;
+    constructor() {
+        this.userRepository = new DatabaseRepository(userModel);
+    }
 
-// class AuthService {
-//     async register(data: type.RegisterDto) {
-//         const {
-//             username,
-//             firstName,
-//             lastName,
-//             email,
-//             phone,
-//             password,
-//             gender,
-//         } = data;
+    async register(data: type.RegisterDto) {
+        const {
+            username,
+            firstName,
+            lastName,
+            email,
+            phone,
+            password,
+            gender,
+        } = data;
 
-//         const existingUser = await userModel.findOne({
-//             $or: [{ email }, { username }, { phone }],
-//         });
+        const existingUser = await userModel.findOne({
+            $or: [{ email }, { username }, { phone }],
+        });
 
-//         if (existingUser) {
-//             if (existingUser.email === email) {
-//                 throw new ConflictException("Email already exists");
-//             }
-//             if (existingUser.username === username) {
-//                 throw new ConflictException("Username already exists");
-//             }
-//             if (existingUser.phone === phone) {
-//                 throw new ConflictException("Phone already exists");
-//             }
-//         }
+        if (existingUser) {
+            if (existingUser.email === email) {
+                throw new ConflictException("Email already exists");
+            }
+            if (existingUser.username === username) {
+                throw new ConflictException("Username already exists");
+            }
+            if (existingUser.phone === phone) {
+                throw new ConflictException("Phone already exists");
+            }
+        }
 
-//         const hashedPassword = await hashText({ plainText: password });
+        const hashedPassword = await hashText({ plainText: password });
 
-//         const user = await userModel.create({
-//             username,
-//             firstName,
-//             lastName,
-//             email,
-//             phone,
-//             password: hashedPassword,
-//             isVerified: false,
-//             gender:
-//                 gender === GenderEnum.Male
-//                     ? GenderEnum.Male
-//                     : GenderEnum.Female,
-//             provider: ProviderEnum.System,
-//             role: RoleEnum.User,
-//         });
+        const user = await this.userRepository.create({
+            username,
+            firstName,
+            lastName,
+            email,
+            phone,
+            password: hashedPassword,
+            isVerified: false,
+            gender:
+                gender === GenderEnum.Male
+                    ? GenderEnum.Male
+                    : GenderEnum.Female,
+            provider: ProviderEnum.System,
+            role: RoleEnum.User,
+        });
 
-//         await generateAndSendOtp(user, "verify-email", "OTP Verification");
+        await generateAndSendOtp(user, "verify-email", "OTP Verification");
 
-//         return user;
-//     }
+        return user;
+    }
 
-//     async login(data: type.LoginDto, host?: string) {
-//         const { identifier, password } = data;
-//         const user = await userModel
-//             .findOne({
-//                 $or: [{ email: identifier }, { username: identifier }],
-//             })
-//             .select("+password");
+    async login(data: type.LoginDto, host?: string) {
+        const { identifier, password } = data;
 
-//         if (!user) throw new BadRequestException("Invalid credentials");
+        const user = await this.userRepository.findOne(
+            { $or: [{ email: identifier }, { username: identifier }] },
+            { select: "+password" },
+        );
+        if (!user) throw new BadRequestException("Invalid credentials");
 
-//         const isMatch = await compareText({
-//             plainText: password,
-//             cypherText: user.password,
-//         });
+        const isMatch = await compareText({
+            plainText: password,
+            cypherText: user.password,
+        });
 
-//         if (!isMatch) throw new UnauthorizedException("Invalid credentials");
+        if (!isMatch) throw new UnauthorizedException("Invalid credentials");
 
-//         if (!user.isVerified)
-//             throw new UnauthorizedException("Verify email and try again");
+        if (!user.isVerified)
+            throw new UnauthorizedException("Verify email and try again");
 
-//         const payload: TokenPayload = {
-//             userId: user._id.toString(),
-//             role: user.role,
-//             host,
-//         };
-//         const tokens = generateToken(payload);
-//         return tokens;
-//     }
+        if (user.status !== UserStatusEnum.Active)
+            throw new UnauthorizedException(`Account ${user.status}`);
 
-//     async verifyEmail(data: type.VerifyEmailDto) {
-//         const { email, otp } = data;
-//         const user = await userModel.findOne({ email });
-//         if (!user) throw new BadRequestException("Email not found");
+        const payload: TokenPayload = {
+            userId: user._id.toString(),
+            role: user.role,
+            host,
+        };
+        const tokens = tokenService.generateToken(payload);
 
-//         if (user.isVerified)
-//             throw new UnauthorizedException("Email already verified");
+        return tokens;
+    }
 
-//         const hashedOtp = await RedisClient.get(
-//             REDIS_KEYS.verifyEmail(user._id.toString()),
-//         );
+    async verifyEmail(data: type.VerifyEmailDto) {
+        const { email, otp } = data;
 
-//         if (!hashedOtp) throw new BadRequestException("Invalid or expired otp");
+        const user = await this.userRepository.findOne({ email });
+        if (!user) throw new BadRequestException("Email not found");
 
-//         const isMatch = await compareText({
-//             plainText: otp,
-//             cypherText: hashedOtp,
-//         });
+        if (user.isVerified)
+            throw new UnauthorizedException("Email already verified");
 
-//         if (!isMatch) throw new UnauthorizedException("Invalid or expired otp");
+        const hashedOtp = await RedisClient.get(
+            RedisKeys.verifyEmail(user._id.toString()),
+        );
 
-//         user.isVerified = true;
-//         await user.save();
+        if (!hashedOtp) throw new BadRequestException("Invalid or expired otp");
 
-//         await RedisClient.del(REDIS_KEYS.verifyEmail(user._id.toString()));
+        const isMatch = await compareText({
+            plainText: otp,
+            cypherText: hashedOtp,
+        });
 
-//         return 1;
-//     }
+        if (!isMatch) throw new UnauthorizedException("Invalid or expired otp");
 
-//     async resendOtp(data: type.ResendOtpDto) {
-//         const { email } = data;
+        user.isVerified = true;
+        user.status = UserStatusEnum.Active;
+        await user.save();
 
-//         const user = await userModel.findOne({ email });
-//         if (!user) throw new BadRequestException("Unable to process request");
+        await RedisClient.del(RedisKeys.verifyEmail(user._id.toString()));
 
-//         if (user.isVerified) {
-//             throw new BadRequestException("Email is already verified");
-//         }
+        return 1;
+    }
 
-//         await generateAndSendOtp(user, "verify-email", "OTP Verification");
+    async resendOtp(data: type.ResendOtpDto) {
+        const { email } = data;
 
-//         return 1;
-//     }
+        const user = await this.userRepository.findOne({ email });
 
-//     async forgetPassword(data: type.ForgetPasswordDto) {
-//         const { email } = data;
+        if (!user) throw new BadRequestException("Unable to process request");
 
-//         const user = await userModel.findOne({ email });
-//         if (!user) throw new BadRequestException("Invalid request");
+        await generateAndSendOtp(user, "verify-email", "OTP Verification");
 
-//         if (!user.isVerified) {
-//             throw new BadRequestException("Please verify your email first");
-//         }
+        return 1;
+    }
 
-//         await generateAndSendOtp(user, "reset-password", "Reset Password");
+    async forgetPassword(data: type.ForgetPasswordDto) {
+        const { email } = data;
 
-//         return 1;
-//     }
+        const user = await this.userRepository.findOne({ email });
 
-//     async resetPassword(data: type.ResetPasswordDto) {
-//         const { email, otp, newPassword } = data;
+        if (!user) throw new BadRequestException("Invalid request");
 
-//         const user = await userModel.findOne({ email });
-//         if (!user) throw new BadRequestException("Invalid request");
+        if (!user.isVerified) {
+            throw new BadRequestException("Please verify your email first");
+        }
 
-//         const hashedOtp = await RedisClient.get(
-//             REDIS_KEYS.resetPassword(user._id.toString()),
-//         );
-//         if (!hashedOtp) throw new BadRequestException("Invalid or expired otp");
+        if (user.status !== UserStatusEnum.Active)
+            throw new UnauthorizedException(`Account ${user.status}`);
 
-//         const isMatch = await compareText({
-//             plainText: otp,
-//             cypherText: hashedOtp,
-//         });
-//         if (!isMatch) throw new UnauthorizedException("Invalid or expired otp");
+        await generateAndSendOtp(user, "reset-password", "Reset Password");
 
-//         user.password = await hashText({ plainText: newPassword });
-//         await user.save();
+        return 1;
+    }
 
-//         await RedisClient.del(REDIS_KEYS.resetPassword(user._id.toString()));
+    async resetPassword(data: type.ResetPasswordDto) {
+        const { email, otp, newPassword } = data;
 
-//         return 1;
-//     }
-// }
+        const user = await this.userRepository.findOne({ email });
 
-// export default new AuthService();
+        if (!user) throw new BadRequestException("Invalid request");
+
+        const hashedOtp = await RedisClient.get(
+            RedisKeys.resetPassword(user._id.toString()),
+        );
+        if (!hashedOtp) throw new BadRequestException("Invalid or expired otp");
+
+        const isMatch = await compareText({
+            plainText: otp,
+            cypherText: hashedOtp,
+        });
+        if (!isMatch) throw new UnauthorizedException("Invalid or expired otp");
+
+        user.password = await hashText({ plainText: newPassword });
+        await user.save();
+
+        await RedisClient.del(RedisKeys.resetPassword(user._id.toString()));
+
+        return 1;
+    }
+
+    async logout(accessToken: DecodedToken, refreshToken?: string) {
+        await RedisClient.createRevokeToken(accessToken, "access");
+
+        if (refreshToken) {
+            try {
+                const decodedRefresh =
+                    tokenService.verifyRefreshToken(refreshToken);
+                await RedisClient.createRevokeToken(decodedRefresh, "refresh");
+            } catch {}
+        }
+
+        return 1;
+    }
+}
+
+export default new AuthService();
